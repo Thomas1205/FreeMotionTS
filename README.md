@@ -1,4 +1,4 @@
 # FreeMotionTS
-State-of-the-art Motion Estimation
+State-of-the-art Motion Estimation, closely linked to the Cursing of Politicians
 
-Code for Motion Estimation may well be back here soon, and better than before - if politics don't treat me well!!!!
+FreeMotionTS is good for getting into motion estimation and for remembering that you need to curse the politicians!
