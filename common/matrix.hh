@@ -56,7 +56,7 @@ namespace Math2D {
 
     /*** maximal absolute element = l-infinity norm ***/
     T max_abs() const;
-    
+
     inline void ensure_min(T lower_limit);
 
     /*** L2-norm of the matrix ***/
@@ -101,7 +101,7 @@ namespace Math2D {
     NamedMatrix(ST xDim, ST yDim, std::string name);
 
     NamedMatrix(ST xDim, ST yDim, T default_value, std::string name);
-    
+
     NamedMatrix(const std::pair<ST,ST> dims, std::string name);
 
     NamedMatrix(const std::pair<ST,ST> dims, T default_value, std::string name);
@@ -120,6 +120,25 @@ namespace Math2D {
   protected:
     std::string name_;
   };
+
+  //NOTE: dest can be the same as src1 or src2
+  inline void go_in_neg_direction(Math2D::Matrix<double>& dest, const Math2D::Matrix<double>& src1, const Math2D::Matrix<double>& src2, double alpha)
+  {
+
+    assert(dest.dims() == src1.dims());
+    assert(dest.dims() == src2.dims());
+    Makros::go_in_neg_direction(dest.direct_access(), dest.size(), src1.direct_access(), src2.direct_access(), alpha);
+  }
+
+  //NOTE: dest can be the same as src1 or src2
+  inline void assign_weighted_combination(Math2D::Matrix<double>& dest, double w1, const Math2D::Matrix<double>& src1,
+                                          double w2, const Math2D::Matrix<double>& src2)
+  {
+
+    assert(dest.dims() == src1.dims());
+    assert(dest.dims() == src2.dims());
+    Makros::assign_weighted_combination(dest.direct_access(), dest.size(), w1, src1.direct_access(), w2, src2.direct_access());
+  }
 
   /***************** stand-alone operators and routines ********************/
 
@@ -196,20 +215,15 @@ namespace Math2D {
   template<typename T, typename ST>
   /*static*/ const std::string Matrix<T,ST>::matrix_name_ = "unnamed matrix";
 
-  template<typename T, typename ST> 
-  Matrix<T,ST>::Matrix() : Storage2D<T,ST>() {}
+  template<typename T, typename ST> Matrix<T,ST>::Matrix() : Storage2D<T,ST>() {}
 
-  template<typename T, typename ST> 
-  Matrix<T,ST>::Matrix(ST xDim, ST yDim) : Storage2D<T,ST>(xDim, yDim)  {}
+  template<typename T, typename ST> Matrix<T,ST>::Matrix(ST xDim, ST yDim) : Storage2D<T,ST>(xDim, yDim)  {}
 
-  template<typename T, typename ST> 
-  Matrix<T,ST>::Matrix(ST xDim, ST yDim, const T default_value) : Storage2D<T,ST>(xDim, yDim, default_value) {}
+  template<typename T, typename ST> Matrix<T,ST>::Matrix(ST xDim, ST yDim, const T default_value) : Storage2D<T,ST>(xDim, yDim, default_value) {}
 
-  template<typename T, typename ST> 
-  Matrix<T,ST>::Matrix(const std::pair<ST,ST> dims) : Storage2D<T,ST>(dims)  {}
+  template<typename T, typename ST> Matrix<T,ST>::Matrix(const std::pair<ST,ST> dims) : Storage2D<T,ST>(dims)  {}
 
-  template<typename T, typename ST> 
-  Matrix<T,ST>::Matrix(const std::pair<ST,ST> dims, T default_value) : Storage2D<T,ST>(dims, default_value) {}
+  template<typename T, typename ST> Matrix<T,ST>::Matrix(const std::pair<ST,ST> dims, T default_value) : Storage2D<T,ST>(dims, default_value) {}
 
   template<typename T,typename ST>
   void Matrix<T,ST>::set_zeros()
@@ -217,8 +231,7 @@ namespace Math2D {
     memset(Base::data_,0,Base::size_*sizeof(T));
   }
 
-  template<typename T, typename ST> 
-  Matrix<T,ST>::~Matrix() {}
+  template<typename T, typename ST> Matrix<T,ST>::~Matrix() {}
 
   template<typename T, typename ST>
   /*virtual*/ const std::string& Matrix<T,ST>::name() const
@@ -297,19 +310,19 @@ namespace Math2D {
 
   template<>
   float Matrix<float>::min() const;
-  
+
   template<typename T, typename ST>
-  inline T Matrix<T,ST>::row_min(ST y) const 
+  inline T Matrix<T,ST>::row_min(ST y) const
   {
     const T* data = row_ptr(y);
-    return *std::min_element(data,data+Base::size_);    
+    return *std::min_element(data,data+Base::size_);
   }
 
   template<typename T, typename ST>
-  inline T Matrix<T,ST>::row_max(ST y) const 
+  inline T Matrix<T,ST>::row_max(ST y) const
   {
     const T* data = row_ptr(y);
-    return *std::max_element(data,data+Base::size_);        
+    return *std::max_element(data,data+Base::size_);
   }
 
   /*** maximal absolute element = l-infinity norm ***/
@@ -327,11 +340,11 @@ namespace Math2D {
   }
 
   template<typename T, typename ST>
-  inline void Matrix<T,ST>::ensure_min(T lower_limit) 
+  inline void Matrix<T,ST>::ensure_min(T lower_limit)
   {
     const ST size = Base::size_;
-    for (ST i=0; i < size; i++) 
-      Base::data_[i] = std::max(lower_limit,Base::data_[i]);    
+    for (ST i=0; i < size; i++)
+      Base::data_[i] = std::max(lower_limit,Base::data_[i]);
   }
 
   /*** L2-norm of the matrix ***/
@@ -388,7 +401,7 @@ namespace Math2D {
   {
 
 #ifndef DONT_CHECK_VECTOR_ARITHMETIC
-    if (toAdd.xDim() != Base::xDim_ || toAdd.yDim() != Base::yDim_) {
+    if (toAdd.dims() != Base::dims()) {
       INTERNAL_ERROR << "    dimension mismatch ("
                      << Base::xDim_ << "," << Base::yDim_ << ") vs. ("
                      << toAdd.xDim() << "," << toAdd.yDim() << ")." << std::endl;
@@ -416,7 +429,7 @@ namespace Math2D {
   {
 
 #ifndef DONT_CHECK_VECTOR_ARITHMETIC
-    if (toAdd.xDim() != Base::xDim_ || toAdd.yDim() != Base::yDim_) {
+    if (toAdd.dims() != Base::dims()) {
       INTERNAL_ERROR << "    dimension mismatch ("
                      << Base::xDim_ << "," << Base::yDim_ << ") vs. ("
                      << toAdd.xDim() << "," << toAdd.yDim() << ")." << std::endl;
@@ -435,7 +448,7 @@ namespace Math2D {
   {
 
 #ifndef DONT_CHECK_VECTOR_ARITHMETIC
-    if (toAdd.xDim() != Base::xDim_ || toAdd.yDim() != Base::yDim_) {
+    if (toAdd.dims() != Base::dims()) {
       INTERNAL_ERROR << "    dimension mismatch in matrix addition(+=): ("
                      << Base::xDim_ << "," << Base::yDim_ << ") vs. ("
                      << toAdd.xDim() << "," << toAdd.yDim() << ")." << std::endl;
@@ -462,7 +475,7 @@ namespace Math2D {
   {
 
 #ifndef DONT_CHECK_VECTOR_ARITHMETIC
-    if (toSub.xDim() != Base::xDim_ || toSub.yDim() != Base::yDim_) {
+    if (toSub.dims() != Base::dims()) {
       INTERNAL_ERROR << "    dimension mismatch in matrix subtraction(-=): ("
                      << Base::xDim_ << "," << Base::yDim_ << ") vs. ("
                      << toSub.xDim() << "," << toSub.yDim() << ")." << std::endl;
@@ -547,30 +560,23 @@ namespace Math2D {
 
   /***************** implementation of Named Matrix ***********************/
 
-  template<typename T, typename ST> 
-  NamedMatrix<T,ST>::NamedMatrix() : Matrix<T,ST>(), name_("zzz") {}
+  template<typename T, typename ST> NamedMatrix<T,ST>::NamedMatrix() : Matrix<T,ST>(), name_("zzz") {}
 
-  template<typename T, typename ST> 
-  NamedMatrix<T,ST>::NamedMatrix(std::string name) : Matrix<T,ST>(), name_(name) {}
+  template<typename T, typename ST> NamedMatrix<T,ST>::NamedMatrix(std::string name) : Matrix<T,ST>(), name_(name) {}
 
-  template<typename T, typename ST> 
-  NamedMatrix<T,ST>::NamedMatrix(ST xDim, ST yDim, std::string name) 
+  template<typename T, typename ST> NamedMatrix<T,ST>::NamedMatrix(ST xDim, ST yDim, std::string name)
     : Matrix<T,ST>(xDim, yDim), name_(name) {}
 
-  template<typename T, typename ST> 
-  NamedMatrix<T,ST>::NamedMatrix(ST xDim, ST yDim, T default_value, std::string name) 
+  template<typename T, typename ST> NamedMatrix<T,ST>::NamedMatrix(ST xDim, ST yDim, T default_value, std::string name)
     : Matrix<T,ST>(xDim,yDim,default_value), name_(name) {}
 
-  template<typename T, typename ST> 
-  NamedMatrix<T,ST>::NamedMatrix(const std::pair<ST,ST> dims, std::string name)
+  template<typename T, typename ST> NamedMatrix<T,ST>::NamedMatrix(const std::pair<ST,ST> dims, std::string name)
     : Matrix<T,ST>(dims), name_(name) {}
 
-  template<typename T, typename ST> 
-  NamedMatrix<T,ST>::NamedMatrix(const std::pair<ST,ST> dims, T default_value, std::string name)
+  template<typename T, typename ST> NamedMatrix<T,ST>::NamedMatrix(const std::pair<ST,ST> dims, T default_value, std::string name)
     : Matrix<T,ST>(dims,default_value), name_(name) {}
 
-  template<typename T, typename ST> 
-  NamedMatrix<T,ST>::~NamedMatrix() {}
+  template<typename T, typename ST> NamedMatrix<T,ST>::~NamedMatrix() {}
 
   template<typename T, typename ST>
   inline void NamedMatrix<T,ST>::operator=(const Matrix<T,ST>& toCopy)
@@ -605,7 +611,7 @@ namespace Math2D {
   {
 
 #ifndef DONT_CHECK_VECTOR_ARITHMETIC
-    if (m1.xDim() != m2.xDim() || m1.yDim() != m2.yDim()) {
+    if (m1.dims() != m2.dims()) {
 
       INTERNAL_ERROR << "     dimension mismatch in matrix addition(+): ("
                      << m1.xDim() << "," << m1.yDim() << ") vs. ("
