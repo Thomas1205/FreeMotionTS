@@ -1,10 +1,15 @@
 LIB = lib/
 COMPILER = g++ -c
 LINKER = g++ -flto
-DEBUGFLAGS =  -ansi -Wall -Wextra -pedantic -malign-double -g -Og -rdynamic -fPIC -march=native -std=c++11
-DEVELFLAGS =  -ansi -Wall -Wextra -pedantic -malign-double -fPIC -march=native -std=c++11
-OPTFLAGS =  -ansi -Wall -Wextra -pedantic -malign-double -O5 -DNDEBUG -fPIC -march=native -std=c++11 -ffast-math
+DEBUGFLAGS =  -ansi -Wall -Wextra -pedantic -march=native -g -Og -DSAFE_MODE -fPIC -rdynamic -std=c++11
+DEVELFLAGS =  -ansi -Wall -Wextra -pedantic -march=native -fPIC -std=c++11
+OPTFLAGS =  -ansi -Wall -Wextra -pedantic -march=native -O3 -DNDEBUG -fPIC -ffast-math -std=c++11
 LINKSFLAGS = -lpthread
 DEBUGDIR = debug/
 OPTDIR = opt/
 DEVELDIR = devel/
+
+# you may want to add this if you really want to use g++:
+#OPTFLAGS += -DUSE_SSE=5 -DGNU_COMPILER
+# and maybe this:
+#OPTFLAGS += -DDONT_CHECK_VECTOR_ARITHMETIC

@@ -1,13 +1,11 @@
 
 tidy:
-	rm -f *~ *.orig
+	rm -f *~
 
-indent:
-	 astyle --style=stroustrup --align-reference=type --align-pointer=type --attach-return-type --attach-return-type-decl --indent=spaces=2 --indent-namespaces --lineend=linux  *.hh *.cc
-
-#clean:
-#	-rm $(DEBUGDIR)/*.o 
-#	-rm $(OPTDIR)/*.o 
+clean:
+	rm -f $(DEBUGDIR)/*.o $(DEBUGDIR)/*.cu_o
+	rm -f $(OPTDIR)/*.o $(OPTDIR)/*.cu_o
+	rm -f $(LIB)/*
 
 $(DEBUGDIR)/%.o : %.cc
 	$(COMPILER) $(INCLUDE) -c $< $(DEBUGFLAGS) -o $@
@@ -39,6 +37,8 @@ $(DEBUGDIR):
 $(OPTDIR):
 	mkdir $(OPTDIR)
 
-$(LIB):
+lib:
 	mkdir lib
 
+$(LIB):
+	mkdir $(LIB)
