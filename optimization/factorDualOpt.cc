@@ -4,6 +4,7 @@
 
 #include "factorDualOpt.hh"
 #include <map>
+#include "flexible_storage1D.hh"
 
 DualVariableNode::DualVariableNode(const Math1D::Vector<float>& cost) : cost_(cost)
 {
