@@ -8,6 +8,7 @@
 
 #include "storage3D.hh"
 #include "fileio.hh"
+#include "routines.hh"
 
 namespace Math3D {
 
@@ -18,17 +19,18 @@ namespace Math3D {
 
     typedef Storage3D<T,ST> Base;
 
-    typedef T ALIGNED16 T_A16;
+    //according to https://gcc.gnu.org/onlinedocs/gcc-7.2.0/gcc/Common-Type-Attributes.html#Common-Type-Attributes , alignment has to be expressed like this:
+    typedef T T_A16 ALIGNED16;
 
-    Tensor();
+    explicit Tensor();
 
-    Tensor(ST xDim, ST yDim, ST zDim);
+    explicit Tensor(ST xDim, ST yDim, ST zDim);
 
-    Tensor(const Dim3D<ST> dims);
+    explicit Tensor(const Dim3D<ST> dims);
 
-    Tensor(ST xDim, ST yDim, ST zDim, const T default_value);
+    explicit Tensor(ST xDim, ST yDim, ST zDim, const T default_value);
 
-    Tensor(const Dim3D<ST> dims, T default_value);
+    explicit Tensor(const Dim3D<ST> dims, T default_value);
 
     ~Tensor();
 
@@ -40,12 +42,6 @@ namespace Math3D {
     inline void add_const(T addon);
 
     inline void add_tensor_multiple(const Tensor<T,ST>& toAdd, const T alpha);
-
-    void operator+=(const Tensor<T,ST>& toAdd);
-
-    void operator-=(const Tensor<T,ST>& toSub);
-
-    void operator*=(const T scalar);
 
     inline double norm() const;
 
@@ -97,6 +93,16 @@ namespace Math3D {
 
     double max_vector_norm() const;
 
+    void operator+=(const Tensor<T,ST>& toAdd);
+
+    void operator-=(const Tensor<T,ST>& toSub);
+
+    void operator*=(const T scalar);
+
+    void elem_mul(const Tensor<T,ST>& v);
+    
+    void elem_div(const Tensor<T,ST>& v);
+
     //returns if the operation was successful
     bool savePPM(std::string filename, size_t max_intensity, bool fit_to_range = true) const;
 
@@ -135,20 +141,18 @@ namespace Math3D {
   //NOTE: dest can be the same as src1 or src2
   inline void go_in_neg_direction(Math3D::Tensor<double>& dest, const Math3D::Tensor<double>& src1, const Math3D::Tensor<double>& src2, double alpha)
   {
-
     assert(dest.dims() == src1.dims());
     assert(dest.dims() == src2.dims());
-    Makros::go_in_neg_direction(dest.direct_access(), dest.size(), src1.direct_access(), src2.direct_access(), alpha);
+    Routines::go_in_neg_direction(dest.direct_access(), dest.size(), src1.direct_access(), src2.direct_access(), alpha);
   }
 
   //NOTE: dest can be the same as src1 or src2
   inline void assign_weighted_combination(Math3D::Tensor<double>& dest, double w1, const Math3D::Tensor<double>& src1,
                                           double w2, const Math3D::Tensor<double>& src2)
   {
-
     assert(dest.dims() == src1.dims());
     assert(dest.dims() == src2.dims());
-    Makros::assign_weighted_combination(dest.direct_access(), dest.size(), w1, src1.direct_access(), w2, src2.direct_access());
+    Routines::assign_weighted_combination(dest.direct_access(), dest.size(), w1, src1.direct_access(), w2, src2.direct_access());
   }
 
   /**** stand-alone operators ****/
@@ -211,19 +215,24 @@ namespace Math3D {
   template<typename T, typename ST>
   /*static*/ const std::string Tensor<T,ST>::tensor_name_ = "unnamed tensor";
 
-  template<typename T, typename ST> Tensor<T,ST>::Tensor() : Storage3D<T,ST>() {}
+  template<typename T, typename ST> 
+  Tensor<T,ST>::Tensor() : Storage3D<T,ST>() {}
 
-  template<typename T, typename ST> Tensor<T,ST>::Tensor(ST xDim, ST yDim, ST zDim) : Storage3D<T,ST>(xDim,yDim,zDim) {}
+  template<typename T, typename ST> 
+  Tensor<T,ST>::Tensor(ST xDim, ST yDim, ST zDim) : Storage3D<T,ST>(xDim,yDim,zDim) {}
 
-  template<typename T, typename ST> Tensor<T,ST>::Tensor(const Dim3D<ST> dims) : Storage3D<T,ST>(dims) {}
+  template<typename T, typename ST> 
+  Tensor<T,ST>::Tensor(const Dim3D<ST> dims) : Storage3D<T,ST>(dims) {}
 
   template<typename T, typename ST> Tensor<T,ST>::
   Tensor(ST xDim, ST yDim, ST zDim, const T default_value) :
     Storage3D<T,ST>(xDim,yDim,zDim,default_value) {}
 
-  template<typename T, typename ST> Tensor<T,ST>::Tensor(const Dim3D<ST> dims, T default_value) : Storage3D<T,ST>(dims, default_value) {}
+  template<typename T, typename ST> 
+  Tensor<T,ST>::Tensor(const Dim3D<ST> dims, T default_value) : Storage3D<T,ST>(dims, default_value) {}
 
-  template<typename T, typename ST> Tensor<T,ST>::~Tensor() {}
+  template<typename T, typename ST> 
+  Tensor<T,ST>::~Tensor() {}
 
   template<typename T, typename ST>
   /*virtual*/ const std::string& Tensor<T,ST>::name() const
@@ -236,7 +245,6 @@ namespace Math3D {
   {
     memset(Base::data_,0,Base::size()*sizeof(T));
   }
-
 
   template<typename T, typename ST>
   inline void Tensor<T,ST>::add_const(const T addon)
@@ -287,7 +295,7 @@ namespace Math3D {
     }
 #endif
 
-    Makros::array_add_multiple(Base::data_, Base::size_, alpha, toAdd.direct_access());
+    Routines::array_add_multiple(Base::data_, Base::size_, alpha, toAdd.direct_access());
   }
 
   template<typename T, typename ST>
@@ -661,15 +669,21 @@ namespace Math3D {
     return max_norm;
   }
 
-  // template<typename T, typename ST>
-  // void Tensor<T,ST>::set_constant(const T constant) {
-
-  //   const ST size = Base::size_;
-
-  //   ST i;
-  //   for (i=0; i < size; i++)
-  //     Base::data_[i] = constant;
-  // }
+  template<typename T, typename ST>
+  void Tensor<T,ST>::elem_mul(const Tensor<T,ST>& v)
+  {
+    assert(Base::dims() == v.dims());
+    for (ST i = 0; i < Base::size_; i++)
+      Base::data_[i] *= v.direct_access(i);
+  }
+    
+  template<typename T, typename ST>
+  void Tensor<T,ST>::elem_div(const Tensor<T,ST>& v)
+  {
+    assert(Base::dims() == v.dims());
+    for (ST i = 0; i < Base::size_; i++)
+      Base::data_[i] /= v.direct_access(i);
+  }
 
   template<typename T, typename ST>
   bool Tensor<T,ST>::savePPM(std::string filename, size_t max_intensity, bool fit_to_range) const

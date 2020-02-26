@@ -7,6 +7,7 @@
 
 #include "storage2D.hh"
 #include "vector.hh"
+#include "routines.hh"
 
 namespace Math2D {
 
@@ -19,18 +20,19 @@ namespace Math2D {
 
     typedef Storage2D<T,ST> Base;
 
-    typedef T ALIGNED16 T_A16;
+    //according to https://gcc.gnu.org/onlinedocs/gcc-7.2.0/gcc/Common-Type-Attributes.html#Common-Type-Attributes , alignment has to be expressed like this:
+    typedef T T_A16 ALIGNED16;
 
     /*---- constructors -----*/
-    Matrix();
+    explicit Matrix();
 
-    Matrix(ST xDim, ST yDim);
+    explicit Matrix(ST xDim, ST yDim);
 
-    Matrix(ST xDim, ST yDim, const T default_value);
+    explicit Matrix(ST xDim, ST yDim, const T default_value);
 
-    Matrix(const std::pair<ST,ST> dims);
+    explicit Matrix(const std::pair<ST,ST> dims);
 
-    Matrix(const std::pair<ST,ST> dims, T default_value);
+    explicit Matrix(const std::pair<ST,ST> dims, T default_value);
 
     /*---- destructor ----*/
     ~Matrix();
@@ -82,6 +84,10 @@ namespace Math2D {
     //multiplication with a scalar
     void operator*=(const T scalar);
 
+    void elem_mul(const Matrix<T,ST>& v);
+    
+    void elem_div(const Matrix<T,ST>& v);
+
     //returns if the operation was successful
     bool savePGM(const std::string& filename, size_t max_intensity, bool fit_to_range = true) const;
 
@@ -124,20 +130,18 @@ namespace Math2D {
   //NOTE: dest can be the same as src1 or src2
   inline void go_in_neg_direction(Math2D::Matrix<double>& dest, const Math2D::Matrix<double>& src1, const Math2D::Matrix<double>& src2, double alpha)
   {
-
     assert(dest.dims() == src1.dims());
     assert(dest.dims() == src2.dims());
-    Makros::go_in_neg_direction(dest.direct_access(), dest.size(), src1.direct_access(), src2.direct_access(), alpha);
+    Routines::go_in_neg_direction(dest.direct_access(), dest.size(), src1.direct_access(), src2.direct_access(), alpha);
   }
 
   //NOTE: dest can be the same as src1 or src2
   inline void assign_weighted_combination(Math2D::Matrix<double>& dest, double w1, const Math2D::Matrix<double>& src1,
                                           double w2, const Math2D::Matrix<double>& src2)
   {
-
     assert(dest.dims() == src1.dims());
     assert(dest.dims() == src2.dims());
-    Makros::assign_weighted_combination(dest.direct_access(), dest.size(), w1, src1.direct_access(), w2, src2.direct_access());
+    Routines::assign_weighted_combination(dest.direct_access(), dest.size(), w1, src1.direct_access(), w2, src2.direct_access());
   }
 
   /***************** stand-alone operators and routines ********************/
@@ -329,10 +333,11 @@ namespace Math2D {
   template<typename T, typename ST>
   T Matrix<T,ST>::max_abs() const
   {
+    const T_A16* data = Base::data_;
 
     T maxel = (T) 0;
     for (ST i=0; i < Base::size_; i++) {
-      const T candidate = Makros::abs<T>(Base::data_[i]);
+      const T candidate = Makros::abs<T>(data[i]);
       maxel = std::max(maxel,candidate);
     }
 
@@ -343,17 +348,22 @@ namespace Math2D {
   inline void Matrix<T,ST>::ensure_min(T lower_limit)
   {
     const ST size = Base::size_;
+    const T_A16* data = Base::data_;
+
     for (ST i=0; i < size; i++)
-      Base::data_[i] = std::max(lower_limit,Base::data_[i]);
+      data[i] = std::max(lower_limit,data[i]);
   }
 
   /*** L2-norm of the matrix ***/
   template<typename T, typename ST>
   inline double Matrix<T,ST>::norm() const
   {
+    const ST size = Base::size_;
+    const T_A16* data = Base::data_;
+
     double result = 0.0;
-    for (ST i=0; i < Base::size_; i++) {
-      const double cur = (double) Base::data_[i];
+    for (ST i=0; i < size; i++) {
+      const double cur = (double) data[i];
       result += cur*cur;
     }
 
@@ -363,9 +373,12 @@ namespace Math2D {
   template<typename T, typename ST>
   inline double Matrix<T,ST>::sqr_norm() const
   {
+    const ST size = Base::size_;
+    const T_A16* data = Base::data_;
+
     double result = 0.0;
-    for (ST i=0; i < Base::size_; i++) {
-      const double cur = (double) Base::data_[i];
+    for (ST i=0; i < size; i++) {
+      const double cur = (double) data[i];
       result += cur*cur;
     }
 
@@ -376,9 +389,12 @@ namespace Math2D {
   template<typename T, typename ST>
   inline double Matrix<T,ST>::norm_l1() const
   {
+    const ST size = Base::size_;
+    const T_A16* data = Base::data_;
+    
     double result = 0.0;
-    for (ST i=0; i < Base::size_; i++) {
-      result += Makros::abs<T>(Base::data_[i]);
+    for (ST i=0; i < size; i++) {
+      result += Makros::abs<T>(data[i]);
     }
 
     return result;
@@ -439,7 +455,7 @@ namespace Math2D {
     }
 #endif
 
-    Makros::array_add_multiple(Base::data_, Base::size_, alpha, toAdd.direct_access());
+    Routines::array_add_multiple(Base::data_, Base::size_, alpha, toAdd.direct_access());
   }
 
   //addition of another matrix of equal dimensions
@@ -518,6 +534,29 @@ namespace Math2D {
   template<>
   void Matrix<double>::operator*=(const double scalar);
 
+  template<typename T, typename ST>
+  void Matrix<T,ST>::elem_mul(const Matrix<T,ST>& v)
+  {
+    const ST size = Base::size_;
+    T_A16* data = Base::data_;
+    const T_A16* vdata = v.direct_access();
+    
+    assert(Base::xDim_ == v.xDim() && Base::yDim_ == v.yDim());
+    for (ST i = 0; i < size; i++)
+      data[i] *= vdata[i];
+  }
+    
+  template<typename T, typename ST>
+  void Matrix<T,ST>::elem_div(const Matrix<T,ST>& v)
+  {
+    const ST size = Base::size_;
+    T_A16* data = Base::data_;
+    const T_A16* vdata = v.direct_access();
+
+    assert(Base::xDim_ == v.xDim() && Base::yDim_ == v.yDim());
+    for (ST i = 0; i < size; i++)
+      data[i] /= vdata[i];
+  }
 
   //@returns if the operation was successful
   template<typename T, typename ST>
@@ -635,7 +674,6 @@ namespace Math2D {
   template<typename T, typename ST>
   Matrix<T,ST> operator*(const Matrix<T,ST>& m1, const Matrix<T,ST>& m2)
   {
-
     //there is room for optimization here
     // but if you want efficient code you should never call a routine that returns a matrix - except if most of your run-time lies elsewhere
 

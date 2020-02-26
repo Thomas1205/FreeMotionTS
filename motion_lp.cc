@@ -5,11 +5,12 @@
 
 #include "sparse_matrix_description.hh"
 #include "conv_lp_solving.hh"
-#include "ClpSimplex.hpp"
-#include "ClpPresolve.hpp"
 #include "timing.hh"
 #include "tensor_interpolation.hh"
 
+#ifdef HAS_CLP
+#include "ClpSimplex.hpp"
+#include "ClpPresolve.hpp"
 #include "OsiSolverInterface.hpp"
 #include "CbcModel.hpp"
 #include "OsiClpSolverInterface.hpp"
@@ -26,6 +27,8 @@
 #include "CglTwomir.hpp"
 #include "CbcHeuristic.hpp"
 #include "CbcHeuristicLocal.hpp"
+#endif
+
 #include "conv_lp_solving.hh"
 #include "projection.hh"
 #include "motion_discrete.hh"
@@ -60,7 +63,7 @@ double lp_motion_estimation(const Math3D::Tensor<float>& first, const Math3D::Te
                             int min_x_disp, int max_x_disp, int min_y_disp, int max_y_disp,
                             uint neighborhood, double lambda, Math3D::Tensor<double>& velocity) {
 
-
+#ifdef HAS_CLP
   const uint xDim = first.xDim();
   const uint yDim = first.yDim();
   const uint nChannels = first.zDim();
@@ -777,6 +780,9 @@ double lp_motion_estimation(const Math3D::Tensor<float>& first, const Math3D::Te
 #endif
 
   return energy;
+#else
+  return 0.0;
+#endif
 }
 
 /************************************************************************************************************/
@@ -785,6 +791,7 @@ double lp_motion_estimation_standard_relax(const Math3D::Tensor<float>& first, c
                                            int min_x_disp, int max_x_disp, int min_y_disp, int max_y_disp,
                                            uint neighborhood, double lambda, Math3D::Tensor<double>& velocity) {
 
+#ifdef HAS_CLP
   const uint xDim = first.xDim();
   const uint yDim = first.yDim();
   const uint nChannels = first.zDim();
@@ -1069,6 +1076,9 @@ double lp_motion_estimation_standard_relax(const Math3D::Tensor<float>& first, c
   }
   
   return energy; 
+#else
+  return 0.0;
+#endif  
 }
 
 
@@ -3390,7 +3400,7 @@ double lp_motion_estimation_bcd(const Math3D::Tensor<float>& first, const Math3D
                                 int min_x_disp, int max_x_disp, int min_y_disp, int max_y_disp,
                                 uint neighborhood, double lambda, Math3D::Tensor<double>& velocity) {
 
-
+#ifdef HAS_CLP
   const uint xDim = first.xDim();
   const uint yDim = first.yDim();
   const uint nChannels = first.zDim();
@@ -3780,5 +3790,8 @@ double lp_motion_estimation_bcd(const Math3D::Tensor<float>& first, const Math3D
   }
 
   return energy;
+#else
+  return 0.0;
+#endif
 }
 

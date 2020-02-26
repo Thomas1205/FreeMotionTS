@@ -1111,7 +1111,7 @@ void MotionEstimator::compute_flow_horn_schunck_cg() {
     //update residuum
     //     for (uint i=0; i < direction.size(); i++)
     //        residuum.direct_access(i) -= alpha_cg * temp_dir.direct_access(i);
-    Makros::array_subtract_multiple(residuum.direct_access(), residuum.size(), 
+    Routines::array_subtract_multiple(residuum.direct_access(), residuum.size(), 
                                     alpha_cg, temp_dir.direct_access());
 
     const double new_res_sqr_norm = residuum.sqr_norm();
@@ -1350,7 +1350,7 @@ void MotionEstimator::compute_flow_increment_horn_schunck_cg() {
     //update residuum
     //     for (uint i=0; i < direction.size(); i++)
     //        residuum.direct_access(i) -= alpha_cg * temp_dir.direct_access(i);
-    Makros::array_subtract_multiple(residuum.direct_access(), residuum.size(), 
+    Routines::array_subtract_multiple(residuum.direct_access(), residuum.size(), 
                                     alpha_cg, temp_dir.direct_access());
 
     const double new_res_sqr_norm = residuum.sqr_norm();
@@ -1545,7 +1545,7 @@ void MotionEstimator::compute_flow_horn_schunck_pcg() {
     //update residuum
     //     for (uint i=0; i < direction.size(); i++)
     //        residuum.direct_access(i) -= alpha_cg * temp_dir.direct_access(i);
-    Makros::array_subtract_multiple(residuum.direct_access(), residuum.size(), 
+    Routines::array_subtract_multiple(residuum.direct_access(), residuum.size(), 
                                     alpha_cg, temp_dir.direct_access());
 
     const double new_res_sqr_norm = residuum.sqr_norm();
