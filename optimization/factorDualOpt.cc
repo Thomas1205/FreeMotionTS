@@ -3,20 +3,20 @@
 /******* continued at the University of Düsseldorf, Germany, October - December 2011 ***/
 
 #include "factorDualOpt.hh"
-#include <map>
 #include "flexible_storage1D.hh"
+#include <map>
 
 DualVariableNode::DualVariableNode(const Math1D::Vector<float>& cost) : cost_(cost)
 {
   dual_var_.resize(cost.size(),0);
 }
 
-void DualVariableNode::add_cost(const Math1D::Vector<float>& add_cost)
+void DualVariableNode::add_cost(const Math1D::Vector<float>& add_cost) noexcept
 {
   cost_ += add_cost;
 }
 
-void DualVariableNode::add_factor(DualFactorNode* node)
+void DualVariableNode::add_factor(DualFactorNode* node) noexcept
 {
 
   uint nPrevFactors = neighboring_factor_.size();
@@ -24,18 +24,17 @@ void DualVariableNode::add_factor(DualFactorNode* node)
   dual_var_.resize(nLabels(),nPrevFactors+1,0.0);
 }
 
-const double* DualVariableNode::get_dual_var_start() const
+const double* DualVariableNode::get_dual_var_start() const noexcept
 {
   return dual_var_.direct_access();
 }
 
-double* DualVariableNode::get_dual_var_start()
+double* DualVariableNode::get_dual_var_start() noexcept
 {
   return dual_var_.direct_access();
 }
 
-
-double* DualVariableNode::get_dual_vars(const DualFactorNode* node)
+double* DualVariableNode::get_dual_vars(const DualFactorNode* node) noexcept
 {
   double* ptr = dual_var_.direct_access();
 
@@ -60,7 +59,7 @@ double* DualVariableNode::get_dual_vars(const DualFactorNode* node)
   return ptr;
 }
 
-const double* DualVariableNode::get_dual_vars(const DualFactorNode* node) const
+const double* DualVariableNode::get_dual_vars(const DualFactorNode* node) const noexcept
 {
   const double* ptr = dual_var_.direct_access();
 
@@ -85,23 +84,22 @@ const double* DualVariableNode::get_dual_vars(const DualFactorNode* node) const
   return ptr;
 }
 
-uint DualVariableNode::nLabels() const
+uint DualVariableNode::nLabels() const noexcept
 {
   return dual_var_.xDim();
 }
 
-void DualVariableNode::init_dual_vars()
+void DualVariableNode::init_dual_vars() noexcept
 {
   dual_var_.set_constant(0.0);
 }
 
-const Storage1D<DualFactorNode*>& DualVariableNode::neighboring_factor() const
+const Storage1D<DualFactorNode*>& DualVariableNode::neighboring_factor() const noexcept
 {
   return neighboring_factor_;
 }
 
-
-void DualVariableNode::compute_message(const DualFactorNode* node, Math1D::Vector<double>& msg) const
+void DualVariableNode::compute_message(const DualFactorNode* node, Math1D::Vector<double>& msg) const noexcept
 {
   const uint label_size = cost_.size();
   const uint nFactors = neighboring_factor_.size();
@@ -121,17 +119,17 @@ void DualVariableNode::compute_message(const DualFactorNode* node, Math1D::Vecto
   }
 }
 
-double DualVariableNode::cost(uint label) const
+double DualVariableNode::cost(uint label) const noexcept
 {
   return cost_[label];
 }
 
-const Math1D::Vector<float>& DualVariableNode::cost() const
+const Math1D::Vector<float>& DualVariableNode::cost() const noexcept
 {
   return cost_;
 }
 
-double DualVariableNode::dual_value(uint& arg_min) const
+double DualVariableNode::dual_value(uint& arg_min) const noexcept
 {
   Math1D::Vector<double> msg;
   this->compute_message(0,msg);
@@ -161,17 +159,17 @@ DualFactorNode::DualFactorNode(const Storage1D<DualVariableNode*>& participating
 /*virtual*/ DualFactorNode::~DualFactorNode() {}
 
 //factors can modify the current labeling, e.g. to satisfy some constraints
-/*virtual*/ bool DualFactorNode::process_labeling(Math1D::Vector<uint>& /*labels*/) const
+/*virtual*/ bool DualFactorNode::process_labeling(Math1D::Vector<uint>& /*labels*/) const noexcept
 {
   return false;
 }
 
-const Storage1D<DualVariableNode*>& DualFactorNode::participating_nodes() const
+const Storage1D<DualVariableNode*>& DualFactorNode::participating_nodes() const noexcept
 {
   return participating_var_;
 }
 
-/*virtual*/ double DualFactorNode::dual_value() const
+/*virtual*/ double DualFactorNode::dual_value() const noexcept
 {
   Math1D::Vector<uint> labels;
   return compute_minimizer(labels);
@@ -190,7 +188,7 @@ BinaryDualFactorNodeBase::BinaryDualFactorNodeBase(const Storage1D<DualVariableN
   }
 }
 
-void BinaryDualFactorNodeBase::update_duals(const Math2D::Matrix<float>& cost, DualBCAMode mode)
+void BinaryDualFactorNodeBase::update_duals(const Math2D::Matrix<float>& cost, DualBCAMode mode) noexcept
 {
   const uint nLabels1 = cost.xDim();
   const uint nLabels2 = cost.yDim();
@@ -198,7 +196,6 @@ void BinaryDualFactorNodeBase::update_duals(const Math2D::Matrix<float>& cost, D
   //std::cerr << "bin" << std::endl;
 
 #if 0
-
   NamedStorage1D<Math1D::Vector<double> > msg(2, MAKENAME(msg));
   NamedStorage1D<double*> dual_ptr(2, MAKENAME(dual_ptr));
 
@@ -375,7 +372,7 @@ void BinaryDualFactorNodeBase::update_duals(const Math2D::Matrix<float>& cost, D
 #endif
 }
 
-double BinaryDualFactorNodeBase::dual_value(const Math2D::Matrix<float>& cost) const
+double BinaryDualFactorNodeBase::dual_value(const Math2D::Matrix<float>& cost) const noexcept
 {
   NamedStorage1D<const double*> dual_ptr(2, MAKENAME(dual_ptr));
 
@@ -404,7 +401,7 @@ double BinaryDualFactorNodeBase::dual_value(const Math2D::Matrix<float>& cost) c
   return min_cost;
 }
 
-double BinaryDualFactorNodeBase::compute_minimizer(const Math2D::Matrix<float>& cost, Math1D::Vector<uint>& min_labels) const
+double BinaryDualFactorNodeBase::compute_minimizer(const Math2D::Matrix<float>& cost, Math1D::Vector<uint>& min_labels) const noexcept
 {
   min_labels.resize_dirty(2);
 
@@ -448,12 +445,12 @@ PottsDualFactorNode::PottsDualFactorNode(const Storage1D<DualVariableNode*>& par
   }
 }
 
-/*virtual*/ double PottsDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double PottsDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return (labels[0] == labels[1]) ? 0.0 : lambda_;
 }
 
-/*virtual*/ void PottsDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void PottsDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   NamedStorage1D<Math1D::Vector<double> > msg(2, MAKENAME(msg));
 
@@ -533,7 +530,7 @@ PottsDualFactorNode::PottsDualFactorNode(const Storage1D<DualVariableNode*>& par
   }
 }
 
-/*virtual*/ double PottsDualFactorNode::dual_value() const
+/*virtual*/ double PottsDualFactorNode::dual_value() const noexcept
 {
   NamedStorage1D<const double*> dual_ptr(2, MAKENAME(dual_ptr));
 
@@ -571,7 +568,7 @@ PottsDualFactorNode::PottsDualFactorNode(const Storage1D<DualVariableNode*>& par
   return min_cost;
 }
 
-/*virtual*/ double PottsDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double PottsDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   min_labels.resize(2);
 
@@ -628,23 +625,22 @@ BinaryDualFactorNode::BinaryDualFactorNode(const Storage1D<DualVariableNode*>& p
   }
 }
 
-
-/*virtual*/ void BinaryDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void BinaryDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   BinaryDualFactorNodeBase::update_duals(cost_, mode);
 }
 
-/*virtual*/ double BinaryDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double BinaryDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return cost_(labels[0],labels[1]);
 }
 
-/*virtual*/ double BinaryDualFactorNode::dual_value() const
+/*virtual*/ double BinaryDualFactorNode::dual_value() const noexcept
 {
   return BinaryDualFactorNodeBase::dual_value(cost_);
 }
 
-/*virtual*/ double BinaryDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double BinaryDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return BinaryDualFactorNodeBase::compute_minimizer(cost_,min_labels);
 }
@@ -657,24 +653,24 @@ BinaryDualRefFactorNode::BinaryDualRefFactorNode(const Storage1D<DualVariableNod
 {
 }
 
-/*virtual*/ void BinaryDualRefFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void BinaryDualRefFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   assert(cost_.xDim() >= participating_var_[0]->nLabels());
   assert(cost_.yDim() >= participating_var_[1]->nLabels());
   BinaryDualFactorNodeBase::update_duals(cost_, mode);
 }
 
-/*virtual*/ double BinaryDualRefFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double BinaryDualRefFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return cost_(labels[0],labels[1]);
 }
 
-/*virtual*/ double BinaryDualRefFactorNode::dual_value() const
+/*virtual*/ double BinaryDualRefFactorNode::dual_value() const noexcept
 {
   return BinaryDualFactorNodeBase::dual_value(cost_);
 }
 
-/*virtual*/ double BinaryDualRefFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double BinaryDualRefFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return BinaryDualFactorNodeBase::compute_minimizer(cost_,min_labels);
 }
@@ -682,8 +678,7 @@ BinaryDualRefFactorNode::BinaryDualRefFactorNode(const Storage1D<DualVariableNod
 
 /**********************************/
 
-GenericDualFactorNode::GenericDualFactorNode(const Storage1D<DualVariableNode*>& participating_vars,
-    const VarDimStorage<float>& cost) :
+GenericDualFactorNode::GenericDualFactorNode(const Storage1D<DualVariableNode*>& participating_vars, const VarDimStorage<float>& cost) :
   DualFactorNode(participating_vars), cost_(cost)
 {
   if (cost.nDims() != participating_vars.size()) {
@@ -699,7 +694,7 @@ GenericDualFactorNode::GenericDualFactorNode(const Storage1D<DualVariableNode*>&
   }
 }
 
-/*virtual*/ void GenericDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void GenericDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   assert(mode == DUAL_BCA_MODE_MPLP);
 
@@ -755,7 +750,7 @@ GenericDualFactorNode::GenericDualFactorNode(const Storage1D<DualVariableNode*>&
   }
 }
 
-/*virtual*/ double GenericDualFactorNode::dual_value() const
+/*virtual*/ double GenericDualFactorNode::dual_value() const noexcept
 {
   uint nVars = participating_var_.size();
 
@@ -797,7 +792,7 @@ GenericDualFactorNode::GenericDualFactorNode(const Storage1D<DualVariableNode*>&
   return min_val;
 }
 
-/*virtual*/ double GenericDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double GenericDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -845,7 +840,7 @@ GenericDualFactorNode::GenericDualFactorNode(const Storage1D<DualVariableNode*>&
   return min_val;
 }
 
-/*virtual*/ double GenericDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double GenericDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   Math1D::Vector<size_t> size_t_labels(labels.size());
 
@@ -866,7 +861,7 @@ TernaryDualFactorNodeBase::TernaryDualFactorNodeBase(const Storage1D<DualVariabl
   }
 }
 
-void TernaryDualFactorNodeBase::update_duals(const Math3D::Tensor<float>& cost, DualBCAMode mode)
+void TernaryDualFactorNodeBase::update_duals(const Math3D::Tensor<float>& cost, DualBCAMode mode) noexcept
 {
   //std::cerr << "tern" << std::endl;
 
@@ -1052,7 +1047,7 @@ void TernaryDualFactorNodeBase::update_duals(const Math3D::Tensor<float>& cost, 
   }
 }
 
-double TernaryDualFactorNodeBase::dual_value(const Math3D::Tensor<float>& cost) const
+double TernaryDualFactorNodeBase::dual_value(const Math3D::Tensor<float>& cost) const noexcept
 {
   NamedStorage1D<const double*> dual_ptr(3, MAKENAME(dual_ptr));
 
@@ -1091,7 +1086,7 @@ double TernaryDualFactorNodeBase::dual_value(const Math3D::Tensor<float>& cost) 
   return min_val;
 }
 
-double TernaryDualFactorNodeBase::compute_minimizer(const Math3D::Tensor<float>& cost, Math1D::Vector<uint>& min_labels) const
+double TernaryDualFactorNodeBase::compute_minimizer(const Math3D::Tensor<float>& cost, Math1D::Vector<uint>& min_labels) const noexcept
 {
   min_labels.resize_dirty(3);
 
@@ -1144,22 +1139,22 @@ TernaryDualFactorNode::TernaryDualFactorNode(const Storage1D<DualVariableNode*>&
   }
 }
 
-/*virtual*/ void TernaryDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void TernaryDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   TernaryDualFactorNodeBase::update_duals(cost_, mode);
 }
 
-/*virtual*/ double TernaryDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double TernaryDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return cost_(labels[0],labels[1],labels[2]);
 }
 
-/*virtual*/ double TernaryDualFactorNode::dual_value() const
+/*virtual*/ double TernaryDualFactorNode::dual_value() const noexcept
 {
   return TernaryDualFactorNodeBase::dual_value(cost_);
 }
 
-/*virtual*/ double TernaryDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double TernaryDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return TernaryDualFactorNodeBase::compute_minimizer(cost_,min_labels);
 }
@@ -1170,7 +1165,7 @@ TernaryDualRefFactorNode::TernaryDualRefFactorNode(const Storage1D<DualVariableN
     const Math3D::Tensor<float>& cost) :
   TernaryDualFactorNodeBase(participating_vars), cost_(cost) {}
 
-/*virtual*/ void TernaryDualRefFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void TernaryDualRefFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   assert(cost_.xDim() >= participating_var_[0]->nLabels());
   assert(cost_.yDim() >= participating_var_[1]->nLabels());
@@ -1179,17 +1174,17 @@ TernaryDualRefFactorNode::TernaryDualRefFactorNode(const Storage1D<DualVariableN
   TernaryDualFactorNodeBase::update_duals(cost_, mode);
 }
 
-/*virtual*/ double TernaryDualRefFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double TernaryDualRefFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return cost_(labels[0],labels[1],labels[2]);
 }
 
-/*virtual*/ double TernaryDualRefFactorNode::dual_value() const
+/*virtual*/ double TernaryDualRefFactorNode::dual_value() const noexcept
 {
   return TernaryDualFactorNodeBase::dual_value(cost_);
 }
 
-/*virtual*/ double TernaryDualRefFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double TernaryDualRefFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return TernaryDualFactorNodeBase::compute_minimizer(cost_,min_labels);
 }
@@ -1208,7 +1203,7 @@ SecondDiffDualFactorNode::SecondDiffDualFactorNode(const Storage1D<DualVariableN
 }
 
 /*virtual*/
-void SecondDiffDualFactorNode::update_duals(DualBCAMode mode)
+void SecondDiffDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   const uint nLabels1 = participating_var_[0]->nLabels();
   const uint nLabels2 = participating_var_[1]->nLabels();
@@ -1503,7 +1498,7 @@ void SecondDiffDualFactorNode::update_duals(DualBCAMode mode)
 }
 
 /*virtual*/
-double SecondDiffDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+double SecondDiffDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   int diff1 = labels[1] - labels[0];
   int diff2 = labels[2] - labels[1];
@@ -1519,7 +1514,7 @@ double SecondDiffDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
 }
 
 /*virtual*/
-double SecondDiffDualFactorNode::dual_value() const
+double SecondDiffDualFactorNode::dual_value() const noexcept
 {
   NamedStorage1D<const double*> dual_ptr(3, MAKENAME(dual_ptr));
 
@@ -1580,7 +1575,7 @@ double SecondDiffDualFactorNode::dual_value() const
 }
 
 /*virtual*/
-double SecondDiffDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+double SecondDiffDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   min_labels.resize_dirty(3);
 
@@ -1665,7 +1660,7 @@ FourthOrderDualFactorNodeBase::FourthOrderDualFactorNodeBase(const Storage1D<Dua
   }
 }
 
-void FourthOrderDualFactorNodeBase::update_duals(const Storage1D<Math3D::Tensor<float> >& cost, DualBCAMode mode)
+void FourthOrderDualFactorNodeBase::update_duals(const Storage1D<Math3D::Tensor<float> >& cost, DualBCAMode mode) noexcept
 {
   //std::cerr << "4th-order" << std::endl;
 
@@ -1902,7 +1897,7 @@ void FourthOrderDualFactorNodeBase::update_duals(const Storage1D<Math3D::Tensor<
   }
 }
 
-double FourthOrderDualFactorNodeBase::dual_value(const Storage1D<Math3D::Tensor<float> >& cost) const
+double FourthOrderDualFactorNodeBase::dual_value(const Storage1D<Math3D::Tensor<float> >& cost) const noexcept
 {
   NamedStorage1D<const double*> dual_ptr(4, MAKENAME(dual_ptr));
 
@@ -1950,8 +1945,7 @@ double FourthOrderDualFactorNodeBase::dual_value(const Storage1D<Math3D::Tensor<
   return min_val;
 }
 
-double FourthOrderDualFactorNodeBase::compute_minimizer(const Storage1D<Math3D::Tensor<float> >& cost,
-    Math1D::Vector<uint>& min_labels) const
+double FourthOrderDualFactorNodeBase::compute_minimizer(const Storage1D<Math3D::Tensor<float> >& cost, Math1D::Vector<uint>& min_labels) const noexcept
 {
   min_labels.resize_dirty(4);
 
@@ -2014,22 +2008,22 @@ FourthOrderDualFactorNode::FourthOrderDualFactorNode(const Storage1D<DualVariabl
   }
 }
 
-/*virtual*/ void FourthOrderDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void FourthOrderDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   FourthOrderDualFactorNodeBase::update_duals(cost_, mode);
 }
 
-/*virtual*/ double FourthOrderDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double FourthOrderDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return cost_[labels[0]](labels[1],labels[2],labels[3]);
 }
 
-/*virtual*/ double FourthOrderDualFactorNode::dual_value() const
+/*virtual*/ double FourthOrderDualFactorNode::dual_value() const noexcept
 {
   return FourthOrderDualFactorNodeBase::dual_value(cost_);
 }
 
-/*virtual*/ double FourthOrderDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double FourthOrderDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return FourthOrderDualFactorNodeBase::compute_minimizer(cost_,min_labels);
 }
@@ -2042,7 +2036,7 @@ FourthOrderDualRefFactorNode::FourthOrderDualRefFactorNode(const Storage1D<DualV
 {
 }
 
-/*virtual*/ void FourthOrderDualRefFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void FourthOrderDualRefFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   assert(cost_[0].size() >= participating_var_[0]->nLabels());
   assert(cost_[0].xDim() >= participating_var_[1]->nLabels());
@@ -2052,17 +2046,17 @@ FourthOrderDualRefFactorNode::FourthOrderDualRefFactorNode(const Storage1D<DualV
   FourthOrderDualFactorNodeBase::update_duals(cost_, mode);
 }
 
-/*virtual*/ double FourthOrderDualRefFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double FourthOrderDualRefFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return cost_[labels[0]](labels[1],labels[2],labels[3]);
 }
 
-/*virtual*/ double FourthOrderDualRefFactorNode::dual_value() const
+/*virtual*/ double FourthOrderDualRefFactorNode::dual_value() const noexcept
 {
   return FourthOrderDualFactorNodeBase::dual_value(cost_);
 }
 
-/*virtual*/ double FourthOrderDualRefFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double FourthOrderDualRefFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return FourthOrderDualFactorNodeBase::compute_minimizer(cost_,min_labels);
 }
@@ -2088,7 +2082,7 @@ GeneralizedPottsDualFactorNode::GeneralizedPottsDualFactorNode(const Storage1D<D
   }
 }
 
-/*virtual*/ void GeneralizedPottsDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void GeneralizedPottsDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   const uint nVars = participating_var_.size();
   const uint nLabels = participating_var_[0]->nLabels();
@@ -2248,7 +2242,7 @@ GeneralizedPottsDualFactorNode::GeneralizedPottsDualFactorNode(const Storage1D<D
   }
 }
 
-/*virtual*/ double GeneralizedPottsDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double GeneralizedPottsDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   assert(labels.size() == participating_var_.size());
 
@@ -2261,7 +2255,7 @@ GeneralizedPottsDualFactorNode::GeneralizedPottsDualFactorNode(const Storage1D<D
   return 0.0;
 }
 
-/*virtual*/ double GeneralizedPottsDualFactorNode::dual_value() const
+/*virtual*/ double GeneralizedPottsDualFactorNode::dual_value() const noexcept
 {
   const uint nVars = participating_var_.size();
   const uint nLabels = participating_var_[0]->nLabels();
@@ -2303,7 +2297,7 @@ GeneralizedPottsDualFactorNode::GeneralizedPottsDualFactorNode(const Storage1D<D
   return best;
 }
 
-/*virtual*/ double GeneralizedPottsDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double GeneralizedPottsDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   const uint nVars = participating_var_.size();
   const uint nLabels = participating_var_[0]->nLabels();
@@ -2366,12 +2360,12 @@ OneOfNDualFactorNode::OneOfNDualFactorNode(const Storage1D<DualVariableNode*>& p
   }
 }
 
-/*virtual*/ double OneOfNDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double OneOfNDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   return (labels.sum() == 1) ? 0.0 : 1e75;
 }
 
-/*virtual*/ void OneOfNDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void OneOfNDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -2517,7 +2511,7 @@ OneOfNDualFactorNode::OneOfNDualFactorNode(const Storage1D<DualVariableNode*>& p
   }
 }
 
-/*virtual*/ double OneOfNDualFactorNode::dual_value() const
+/*virtual*/ double OneOfNDualFactorNode::dual_value() const noexcept
 {
   uint nVars = participating_var_.size();
 
@@ -2542,7 +2536,7 @@ OneOfNDualFactorNode::OneOfNDualFactorNode(const Storage1D<DualVariableNode*>& p
   return min_val;
 }
 
-/*virtual*/ double OneOfNDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double OneOfNDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -2588,7 +2582,7 @@ CardinalityDualFactorNodeBase::CardinalityDualFactorNodeBase(const Storage1D<Dua
   }
 }
 
-void CardinalityDualFactorNodeBase::update_duals(DualBCAMode mode, const Math1D::Vector<float>& card_cost)
+void CardinalityDualFactorNodeBase::update_duals(DualBCAMode mode, const Math1D::Vector<float>& card_cost) noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -2915,7 +2909,7 @@ void CardinalityDualFactorNodeBase::update_duals(DualBCAMode mode, const Math1D:
 
 }
 
-double CardinalityDualFactorNodeBase::dual_value(const Math1D::Vector<float>& card_cost) const
+double CardinalityDualFactorNodeBase::dual_value(const Math1D::Vector<float>& card_cost) const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -2955,7 +2949,7 @@ double CardinalityDualFactorNodeBase::dual_value(const Math1D::Vector<float>& ca
 }
 
 double CardinalityDualFactorNodeBase::compute_minimizer(Math1D::Vector<uint>& min_labels,
-    const Math1D::Vector<float>& card_cost) const
+    const Math1D::Vector<float>& card_cost) const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -3016,28 +3010,28 @@ CardinalityDualFactorNode::CardinalityDualFactorNode(const Storage1D<DualVariabl
   }
 }
 
-/*virtual*/ double CardinalityDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double CardinalityDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   uint sum = labels.sum();
   return card_cost_[sum];
 }
 
-/*virtual*/ void CardinalityDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void CardinalityDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   CardinalityDualFactorNodeBase::update_duals(mode,card_cost_);
 }
 
-/*virtual*/ double CardinalityDualFactorNode::dual_value() const
+/*virtual*/ double CardinalityDualFactorNode::dual_value() const noexcept
 {
   return CardinalityDualFactorNodeBase::dual_value(card_cost_);
 }
 
-/*virtual*/ double CardinalityDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double CardinalityDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return CardinalityDualFactorNodeBase::compute_minimizer(min_labels,card_cost_);
 }
 
-/*virtual*/ double CardinalityDualFactorRefNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double CardinalityDualFactorRefNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return CardinalityDualFactorNodeBase::compute_minimizer(min_labels,card_cost_);
 }
@@ -3050,19 +3044,19 @@ CardinalityDualFactorRefNode::CardinalityDualFactorRefNode(const Storage1D<DualV
 {
 }
 
-/*virtual*/ double CardinalityDualFactorRefNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double CardinalityDualFactorRefNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   uint sum = labels.sum();
   return card_cost_[sum];
 }
 
-/*virtual*/ void CardinalityDualFactorRefNode::update_duals(DualBCAMode mode)
+/*virtual*/ void CardinalityDualFactorRefNode::update_duals(DualBCAMode mode) noexcept
 {
   assert(card_cost_.size() >= participating_var_.size()+1);
   CardinalityDualFactorNodeBase::update_duals(mode,card_cost_);
 }
 
-/*virtual*/ double CardinalityDualFactorRefNode::dual_value() const
+/*virtual*/ double CardinalityDualFactorRefNode::dual_value() const noexcept
 {
   return CardinalityDualFactorNodeBase::dual_value(card_cost_);
 }
@@ -3075,7 +3069,7 @@ NonbinaryCardinalityDualFactorNodeBase::NonbinaryCardinalityDualFactorNodeBase(c
 }
 
 void NonbinaryCardinalityDualFactorNodeBase::update_duals(DualBCAMode mode, const Math1D::Vector<float>& card_cost,
-    const Math1D::Vector<uint>& level)
+    const Math1D::Vector<uint>& level) noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -3406,7 +3400,7 @@ void NonbinaryCardinalityDualFactorNodeBase::update_duals(DualBCAMode mode, cons
 }
 
 double NonbinaryCardinalityDualFactorNodeBase::dual_value(const Math1D::Vector<float>& card_cost,
-    const Math1D::Vector<uint>& level) const
+    const Math1D::Vector<uint>& level) const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -3459,8 +3453,7 @@ double NonbinaryCardinalityDualFactorNodeBase::dual_value(const Math1D::Vector<f
 }
 
 double NonbinaryCardinalityDualFactorNodeBase::compute_minimizer(Math1D::Vector<uint>& min_labels,
-    const Math1D::Vector<float>& card_cost,
-    const Math1D::Vector<uint>& level) const
+    const Math1D::Vector<float>& card_cost, const Math1D::Vector<uint>& level) const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -3526,8 +3519,7 @@ double NonbinaryCardinalityDualFactorNodeBase::compute_minimizer(Math1D::Vector<
 /**********************************/
 
 NonbinaryCardinalityDualFactorNode::NonbinaryCardinalityDualFactorNode(const Storage1D<DualVariableNode*>& participating_vars,
-    const Math1D::Vector<float>& card_cost,
-    const Math1D::Vector<uint>& level)
+    const Math1D::Vector<float>& card_cost, const Math1D::Vector<uint>& level)
   : NonbinaryCardinalityDualFactorNodeBase(participating_vars), card_cost_(card_cost), level_(level)
 {
 
@@ -3540,7 +3532,7 @@ NonbinaryCardinalityDualFactorNode::NonbinaryCardinalityDualFactorNode(const Sto
   }
 }
 
-/*virtual*/ double NonbinaryCardinalityDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double NonbinaryCardinalityDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
 
   assert(labels.size() < card_cost_.size());
@@ -3554,17 +3546,17 @@ NonbinaryCardinalityDualFactorNode::NonbinaryCardinalityDualFactorNode(const Sto
   return card_cost_[card];
 }
 
-/*virtual*/ void NonbinaryCardinalityDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void NonbinaryCardinalityDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   NonbinaryCardinalityDualFactorNodeBase::update_duals(mode,card_cost_,level_);
 }
 
-/*virtual*/ double NonbinaryCardinalityDualFactorNode::dual_value() const
+/*virtual*/ double NonbinaryCardinalityDualFactorNode::dual_value() const noexcept
 {
   return NonbinaryCardinalityDualFactorNodeBase::dual_value(card_cost_,level_);
 }
 
-/*virtual*/ double NonbinaryCardinalityDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double NonbinaryCardinalityDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   return NonbinaryCardinalityDualFactorNodeBase::compute_minimizer(min_labels,card_cost_,level_);
 }
@@ -3588,7 +3580,7 @@ AllPosBILPConstraintDualFactorNode::AllPosBILPConstraintDualFactorNode(const Sto
   }
 }
 
-/*virtual*/ double AllPosBILPConstraintDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double AllPosBILPConstraintDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   int sum = labels.sum();
 
@@ -3596,7 +3588,7 @@ AllPosBILPConstraintDualFactorNode::AllPosBILPConstraintDualFactorNode(const Sto
 }
 
 /*virtual*/
-void AllPosBILPConstraintDualFactorNode::update_duals(DualBCAMode mode)
+void AllPosBILPConstraintDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -3803,7 +3795,7 @@ void AllPosBILPConstraintDualFactorNode::update_duals(DualBCAMode mode)
 }
 
 /*virtual*/
-double AllPosBILPConstraintDualFactorNode::dual_value() const
+double AllPosBILPConstraintDualFactorNode::dual_value() const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -3847,7 +3839,7 @@ double AllPosBILPConstraintDualFactorNode::dual_value() const
 }
 
 /*virtual*/
-double AllPosBILPConstraintDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+double AllPosBILPConstraintDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -3922,7 +3914,6 @@ BILPConstraintDualFactorNode::BILPConstraintDualFactorNode(const Storage1D<DualV
     exit(1);
   }
 
-
   Storage1D<DualVariableNode*> sorted_involved_vars(participating_vars.size());
   uint next_pos = 0;
 
@@ -3972,7 +3963,7 @@ BILPConstraintDualFactorNode::BILPConstraintDualFactorNode(const Storage1D<DualV
   }
 }
 
-/*virtual*/ double BILPConstraintDualFactorNode::cost(const Math1D::Vector<uint>& labels) const
+/*virtual*/ double BILPConstraintDualFactorNode::cost(const Math1D::Vector<uint>& labels) const noexcept
 {
   int sum = 0;
 
@@ -3986,7 +3977,7 @@ BILPConstraintDualFactorNode::BILPConstraintDualFactorNode(const Storage1D<DualV
   return (sum >= rhs_lower_ && sum <= rhs_upper_) ? 0.0 : 1e15;
 }
 
-/*virtual*/ void BILPConstraintDualFactorNode::update_duals(DualBCAMode mode)
+/*virtual*/ void BILPConstraintDualFactorNode::update_duals(DualBCAMode mode) noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -4428,7 +4419,6 @@ BILPConstraintDualFactorNode::BILPConstraintDualFactorNode(const Storage1D<DualV
         const int nPos = nPos_ - ((idx < nPos_) ? 1 : 0);
         const int nNeg = nVars - nPos_ - ((idx < nPos_) ? 0 : 1);
 
-
         FlexibleStorage1D<double> pos(nPos);
         FlexibleStorage1D<double> neg(nNeg);
 
@@ -4436,10 +4426,10 @@ BILPConstraintDualFactorNode::BILPConstraintDualFactorNode(const Storage1D<DualV
 
           if (v != idx) {
             if (v < nPos_) {
-              pos.append(dp_val[v]);
+              pos.append_trusting(dp_val[v]);
             }
             else {
-              neg.append(dp_val[v]);
+              neg.append_trusting(dp_val[v]);
             }
           }
         }
@@ -4717,7 +4707,7 @@ BILPConstraintDualFactorNode::BILPConstraintDualFactorNode(const Storage1D<DualV
   }
 }
 
-/*virtual*/ double BILPConstraintDualFactorNode::dual_value() const
+/*virtual*/ double BILPConstraintDualFactorNode::dual_value() const noexcept
 {
   const uint nVars = participating_var_.size();
 
@@ -4809,7 +4799,7 @@ BILPConstraintDualFactorNode::BILPConstraintDualFactorNode(const Storage1D<DualV
   return min_val;
 }
 
-/*virtual*/ double BILPConstraintDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const
+/*virtual*/ double BILPConstraintDualFactorNode::compute_minimizer(Math1D::Vector<uint>& min_labels) const noexcept
 {
   //std::cerr << "cm" << std::endl;
 

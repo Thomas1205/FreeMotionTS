@@ -18,8 +18,6 @@
 
 #include "trws.hh"
 #include "factorTRWS.hh"
-#include "separatorDualOpt.hh" //only for testing
-#include "separatorTRWS.hh" // only for testing
 
 double trws_motion_estimation(const Math3D::Tensor<float>& first, const Math3D::Tensor<float>& second,
                               int min_x_disp, int max_x_disp, int min_y_disp, int max_y_disp, uint spacing,
@@ -266,15 +264,13 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
   assert(trws_fac + sg_fac + mplp_fac == 1);
 
   //TRWS trws(trws_fac*2*xDim*yDim, trws_fac*xDim*yDim*(1+neighborhood));
-  //CumTRWS trws(trws_fac*2*xDim*yDim, trws_fac*xDim*yDim*(1+neighborhood));
-  CumSeparatorTRWS trws(trws_fac*2*xDim*yDim, 0, trws_fac*xDim*yDim*(1+neighborhood));
+  CumTRWS trws(trws_fac*2*xDim*yDim, trws_fac*xDim*yDim*(1+neighborhood));
 
   //NaiveTRWS trws(trws_fac*2*xDim*yDim, yxDim*yDim*(1+neighborhood));
   //NaiveFactorTRWS trws(trws_fac*2*xDim*yDim, trws_fac*xDim*yDim*(1+neighborhood));
   FactorChainDualDecomposition dual_decomp(sg_fac*2*xDim*yDim, sg_fac*xDim*yDim*(1+neighborhood));
 
-  //FactorDualOpt facDO(mplp_fac * 2*xDim*yDim, mplp_fac * (neighborhood+1) * xDim*yDim);
-  SeparatorDualOptimization facDO(mplp_fac * 2*xDim*yDim, 0, mplp_fac * (neighborhood+1) * xDim*yDim);
+  FactorDualOpt facDO(mplp_fac * 2*xDim*yDim, mplp_fac * (neighborhood+1) * xDim*yDim);
 
   /*** construct nodes (all cost are zero) ****/
   for (uint y=0; y < yDim; y++) {
@@ -284,8 +280,8 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
       Math1D::Vector<float> labels(nHorLabels,0.0);
 
       if (trws_fac == 1) {
-        //trws.add_node(labels);
-        trws.add_var(labels);
+        trws.add_node(labels);
+        //trws.add_var(labels);
       }
       else if (sg_fac == 1) 
         dual_decomp.add_var(labels);
@@ -294,8 +290,8 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
 
       labels.resize(nVertLabels,0.0);
       if (trws_fac == 1) {
-        //trws.add_node(labels);
-        trws.add_var(labels);
+        trws.add_node(labels);
+        //trws.add_var(labels);
       }
       else if (sg_fac == 1) 
         dual_decomp.add_var(labels);
@@ -359,8 +355,8 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
       }
 
       if (trws_fac == 1) {      
-        //trws.add_edge(2*(y*xDim+x), 2*(y*xDim+x)+1, data_edge);
-        trws.add_binary_factor(2*(y*xDim+x), 2*(y*xDim+x)+1, data_edge);
+        trws.add_edge(2*(y*xDim+x), 2*(y*xDim+x)+1, data_edge);
+        //trws.add_binary_factor(2*(y*xDim+x), 2*(y*xDim+x)+1, data_edge);
       }
       else if (sg_fac == 1)       
         dual_decomp.add_binary_factor(2*(y*xDim+x), 2*(y*xDim+x)+1, data_edge);
@@ -370,11 +366,11 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
       /*** add smoothness edges ***/
       if (x > 0) {
         if (trws_fac == 1) {
-          //trws.add_edge(2*(y*xDim+x-1), 2*(y*xDim+x), hor_smooth_edge);
-          //trws.add_edge(2*(y*xDim+x-1)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
+          trws.add_edge(2*(y*xDim+x-1), 2*(y*xDim+x), hor_smooth_edge);
+          trws.add_edge(2*(y*xDim+x-1)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
 
-          trws.add_binary_factor(2*(y*xDim+x-1), 2*(y*xDim+x), hor_smooth_edge);
-          trws.add_binary_factor(2*(y*xDim+x-1)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
+          //trws.add_binary_factor(2*(y*xDim+x-1), 2*(y*xDim+x), hor_smooth_edge);
+          //trws.add_binary_factor(2*(y*xDim+x-1)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
         }
         else if (sg_fac == 1) {
           dual_decomp.add_binary_factor(2*(y*xDim+x-1), 2*(y*xDim+x), hor_smooth_edge);
@@ -387,11 +383,11 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
       }
       if (y > 0) {
         if (trws_fac == 1) {
-          //trws.add_edge(2*(y*xDim+x-xDim), 2*(y*xDim+x), hor_smooth_edge);
-          //trws.add_edge(2*(y*xDim+x-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
+          trws.add_edge(2*(y*xDim+x-xDim), 2*(y*xDim+x), hor_smooth_edge);
+          trws.add_edge(2*(y*xDim+x-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
 	  
-          trws.add_binary_factor(2*(y*xDim+x-xDim), 2*(y*xDim+x), hor_smooth_edge);
-          trws.add_binary_factor(2*(y*xDim+x-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
+          //trws.add_binary_factor(2*(y*xDim+x-xDim), 2*(y*xDim+x), hor_smooth_edge);
+          //trws.add_binary_factor(2*(y*xDim+x-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
         }
         else if (sg_fac == 1) {
           dual_decomp.add_binary_factor(2*(y*xDim+x-xDim), 2*(y*xDim+x), hor_smooth_edge);
@@ -415,11 +411,11 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
 
         if (x > 0 && y > 0) {
           if (trws_fac == 1) {
-            //trws.add_edge(2*(y*xDim+x-1-xDim), 2*(y*xDim+x), hor_smooth_edge);
-            //trws.add_edge(2*(y*xDim+x-1-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
+            trws.add_edge(2*(y*xDim+x-1-xDim), 2*(y*xDim+x), hor_smooth_edge);
+            trws.add_edge(2*(y*xDim+x-1-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
 	    
-            trws.add_binary_factor(2*(y*xDim+x-1-xDim), 2*(y*xDim+x), hor_smooth_edge);
-            trws.add_binary_factor(2*(y*xDim+x-1-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
+            //trws.add_binary_factor(2*(y*xDim+x-1-xDim), 2*(y*xDim+x), hor_smooth_edge);
+            //trws.add_binary_factor(2*(y*xDim+x-1-xDim)+1, 2*(y*xDim+x)+1, vert_smooth_edge);
           }
           else if (sg_fac == 1) {
             dual_decomp.add_binary_factor(2*(y*xDim+x-1-xDim), 2*(y*xDim+x), hor_smooth_edge);
@@ -432,11 +428,11 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
         }
         if (x > 0 && y+1 < yDim) {
           if (trws_fac == 1) {
-            //trws.add_edge(2*(y*xDim+x), 2*(y*xDim+x-1+xDim),hor_smooth_edge);
-            //trws.add_edge(2*(y*xDim+x)+1, 2*(y*xDim+x-1+xDim)+1, vert_smooth_edge);
+            trws.add_edge(2*(y*xDim+x), 2*(y*xDim+x-1+xDim),hor_smooth_edge);
+            trws.add_edge(2*(y*xDim+x)+1, 2*(y*xDim+x-1+xDim)+1, vert_smooth_edge);
 
-            trws.add_binary_factor(2*(y*xDim+x), 2*(y*xDim+x-1+xDim),hor_smooth_edge);
-            trws.add_binary_factor(2*(y*xDim+x)+1, 2*(y*xDim+x-1+xDim)+1, vert_smooth_edge);
+            //trws.add_binary_factor(2*(y*xDim+x), 2*(y*xDim+x-1+xDim),hor_smooth_edge);
+            //trws.add_binary_factor(2*(y*xDim+x)+1, 2*(y*xDim+x-1+xDim)+1, vert_smooth_edge);
           }
           else if (sg_fac == 1) {
             dual_decomp.add_binary_factor(2*(y*xDim+x), 2*(y*xDim+x-1+xDim),hor_smooth_edge);
@@ -461,12 +457,10 @@ double message_passing_motion_estimation(const Math3D::Tensor<float>& first, con
     double bound = dual_decomp.optimize(200,1.0);
   else {
     if (method == "mplp") {
-      //facDO.dual_bcd(2500);
-      facDO.optimize(2500); //testing only
+      facDO.dual_bca(2500);
     }
     else {
-      //facDO.dual_bcd(2500,DUAL_BCD_MODE_MSD);
-      facDO.optimize(2500); //testing only
+      facDO.dual_bca(2500,DUAL_BCA_MODE_MSD);
     }
   }
 
