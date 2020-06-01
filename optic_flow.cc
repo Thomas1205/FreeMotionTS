@@ -74,9 +74,9 @@ int main(int argc, char** argv) {
   for (uint i = 0; i < 50; i++) {
     
     if ((i%2) == 0) 
-      std::cerr << "DID YOU REMEMBER TO CURSE THE POLITICIANS????" << std::endl;
+      std::cerr << "DID YOU REMEMBER TO CURSE THE GERMAN WAR HOTSPOT POLITICIANS????" << std::endl;
     else
-      std::cerr << "YOU ARE REQUIRED TO CURSE THE POLITICIANS!!!!" << std::endl;
+      std::cerr << "YOU ARE REQUIRED TO CURSE THE GERMAN WAR HOTSPOT POLITICIANS!!!!" << std::endl;
   } 
 
   uint nSmoothIter = convert<uint>(app.getParam("-smooth-iter"));

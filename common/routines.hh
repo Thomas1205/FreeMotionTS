@@ -30,6 +30,8 @@
 //NOTES on instruction lengths for equivalent instructions (some VEXes are 3 bytes, others 2 bytes):
 // vmodupd (VEX.128.66.0F.WIG 10) and vmovdqu (VEX.128.F3.0F.WIG 6F) seem longer than vmovups (VEX.128.0F.WIG 10). But experiments show they have equal length
 
+//NOTE: in C++20, register will be removed -> we remove it already
+
 #ifdef USE_ASM
 static_assert(sizeof(uint) == 4, "wrong size");
 static_assert(sizeof(int) == 4, "wrong size");
@@ -560,7 +562,7 @@ namespace Routines {
                         : : [ind] "m" (ind[0]), [uinc] "m" (uinc), [ukey] "m" (key)
                         : "ymm2", "ymm3", "ymm4", "ymm5");
 
-      register uint res = MAX_UINT;
+      uint res = MAX_UINT;
       for (; i+8 <= nData; i+=8) {
 
         //NOTE: jumps outside of asm blocks are allowed only in asm goto, but that cannot have outputs (and local variables do not seem to get assembler names)
@@ -607,7 +609,7 @@ namespace Routines {
                           : : [finc] "m" (finc) : "xmm4");
       }
 
-      register uint res = MAX_UINT;
+      uint res = MAX_UINT;
       for (; i+4 <= nData; i+=4) {
 
         //NOTE: jumps outside of asm blocks are allowed only in asm goto, but that cannot have outputs (and local variables do not seem to get assembler names)
@@ -698,7 +700,7 @@ namespace Routines {
                         : : [ind] "m" (ind[0]), [finc] "m" (finc), [fkey] "m" (fkey), [fmax] "m" (fmax)
                         : "xmm2", "xmm3", "xmm4", "xmm5");
 
-      register uint res = MAX_UINT;
+      uint res = MAX_UINT;
       for (; i+4 <= nData; i+=4) 
       {
         //NOTE: jumps outside of asm blocks are allowed only in asm goto, but that cannot have outputs (and local variables do not seem to get assembler names)
